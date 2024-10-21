@@ -1,4 +1,10 @@
 services:
+  cartdb:
+    image: mongo:latest  
+
+  mssqldb:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+      
   cart.api:
     image: ${DOCKER_REGISTRY-}cartapi
     build:
@@ -11,3 +17,14 @@ services:
       context: .
       dockerfile: src/Services/Catalog/Catalog.API/Dockerfile
 
+  portainer:
+    image: portainer/portainer-ce
+
+  prometheus:
+    image: prom/prometheus:latest
+
+  grafana:
+    image: grafana/grafana:latest
+  
+volumes:
+  mongo_data:

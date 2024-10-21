@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'cart_api'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['cart.api:8080']
+      
+  - job_name: 'catalog_api'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['catalog.api:8080']
