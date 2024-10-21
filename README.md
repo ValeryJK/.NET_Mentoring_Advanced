@@ -17,9 +17,7 @@
   "AllowedHosts": "*"
 }
 
-
-![image](https://github.com/user-attachments/assets/2065e08b-39d2-4441-9011-5afcb51dc08d)
-
+![image](https://github.com/user-attachments/assets/d9649812-82f4-4016-be4f-6b4d179744be)
 
 ![image](https://github.com/user-attachments/assets/75f83bc6-2c13-40d8-ac36-64fd25d399b4)
 
