@@ -4,10 +4,10 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>08ce8569-5bcc-4914-a8f0-049b9a33ffeb</ProjectGuid>
+    <ProjectGuid>4e36ea98-5f15-473d-a4ac-2443cf63e233</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>cart.api</DockerServiceName>
+    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/health-ui</DockerServiceUrl>
+    <DockerServiceName>healthchecks-ui</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">
