@@ -1,64 +1,89 @@
-﻿using Catalog.Application.Interfaces;
-using Catalog.Domain.Entities;
+﻿using Asp.Versioning;
+using Catalog.API.Extensions;
+using Catalog.API.Resources;
+using Catalog.Application.Features.Products.CreateProduct;
+using Catalog.Application.Features.Products.DeleteProduct;
+using Catalog.Application.Features.Products.GetProduct;
+using Catalog.Application.Features.Products.GetProducts;
+using Catalog.Application.Features.Products.UpdateProduct;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.API.Controllers
 {
-	[Route("products")]
 	[ApiController]
+	[Route("api/v{version:apiVersion}/products")]
+	[ApiVersion("1.0")]
 	public class ProductsController : ControllerBase
 	{
-		private readonly IProductService _productService;
+		private readonly IMediator _mediator;
 
-		public ProductsController(IProductService productService)
+		public ProductsController(IMediator mediator)
 		{
-			_productService = productService;
+			_mediator = mediator;
 		}
 
-		[HttpGet("{id}")]
-		public async Task<IActionResult> Get(int id)
-		{
-			var product = await _productService.GetAsync(id);
-			if (product == null)
-				return NotFound();
-			return Ok(product);
-		}
-
+		/// <summary>
+		/// Gets a paginated list of products, optionally filtered by category ID.
+		/// </summary>
 		[HttpGet]
-		public async Task<IActionResult> GetAll()
+		public async Task<IActionResult> GetPagedProducts(
+			[FromQuery] int pageNumber = 1,
+			[FromQuery] int pageSize = 10,
+			[FromQuery] int? id = null)
 		{
-			var products = await _productService.GetAllAsync();
-			return Ok(products);
+			var query = new GetPagedProductsQuery
+			{
+				PageNumber = pageNumber,
+				PageSize = pageSize,
+				CategoryId = id
+			};
+
+			var result = await _mediator.Send(query);
+			return result.ToHttpResponse();
 		}
 
+		/// <summary>
+		/// Gets a specific product by ID.
+		/// </summary>
+		[HttpGet("{id}", Name = nameof(GetProductById))]
+		public async Task<IActionResult> GetProductById(int id)
+		{
+			var query = new GetProductQuery { Id = id };
+			var result = await _mediator.Send(query);
+			return result.ToHttpResponseWithHateoas(this, HateoasLinksFactory.GetProductLinks());
+		}
+
+		/// <summary>
+		/// Adds a new product.
+		/// </summary>
 		[HttpPost]
-		public async Task<IActionResult> Add([FromBody] Product product)
+		public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
 		{
-			if (!ModelState.IsValid)
-				return BadRequest(ModelState);
-
-			await _productService.AddAsync(product);
-			return CreatedAtAction(nameof(Get), new { id = product.Id }, product);
+			var result = await _mediator.Send(command);
+			return result.ToCreatedHttpResponse();
 		}
 
-		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(int id, [FromBody] Product product)
+		/// <summary>
+		/// Updates an existing product.
+		/// </summary>
+		[HttpPut("{id}", Name = nameof(UpdateProduct))]
+		public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductCommand command)
 		{
-			if (id != product.Id)
-				return BadRequest("ID mismatch");
-
-			if (!ModelState.IsValid)
-				return BadRequest(ModelState);
-
-			await _productService.UpdateAsync(product);
-			return NoContent();
+			command.Id = id;
+			var result = await _mediator.Send(command);
+			return result.ToHttpResponse();
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> Delete(int id)
+		/// <summary>
+		/// Deletes a product by ID.
+		/// </summary>
+		[HttpDelete("{id}", Name = nameof(DeleteProduct))]
+		public async Task<IActionResult> DeleteProduct(int id)
 		{
-			await _productService.DeleteAsync(id);
-			return NoContent();
+			var command = new DeleteProductCommand { Id = id };
+			var result = await _mediator.Send(command);
+			return result.ToHttpResponse();
 		}
 	}
 }

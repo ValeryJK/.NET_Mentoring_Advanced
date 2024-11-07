@@ -17,22 +17,20 @@ namespace Cart.Persistence.Repositories
 			return await cursor.ToListAsync();
 		}
 
-		public async Task<Domain.Entities.Cart?> GetCartAsync(Guid cartId)
+		public async Task<Domain.Entities.Cart?> GetCartByIdAsync(string cartId)
 		{
-			using var cursor = await _carts.FindAsync(c => c.Id == cartId);
-			return await cursor.FirstOrDefaultAsync();
+			var filter = Builders<Domain.Entities.Cart>.Filter.Eq(x => x.Id, cartId);
+
+			var cart = await _carts.FindAsync(filter);
+			return await cart.FirstOrDefaultAsync();
 		}
 
 		public async Task SaveCartAsync(Domain.Entities.Cart cart)
 		{
-			await _carts.ReplaceOneAsync(
-				c => c.Id == cart.Id,
-				cart,
-				new ReplaceOptions { IsUpsert = true }
-			);
+			await _carts.ReplaceOneAsync(c => c.Id == cart.Id, cart, new ReplaceOptions { IsUpsert = true });
 		}
 
-		public async Task DeleteCartAsync(Guid cartId)
+		public async Task DeleteCartAsync(string cartId)
 		{
 			await _carts.DeleteOneAsync(c => c.Id == cartId);
 		}

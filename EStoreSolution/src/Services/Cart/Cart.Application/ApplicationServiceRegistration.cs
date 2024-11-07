@@ -1,6 +1,6 @@
-﻿using Cart.Application.Interfaces;
-using Cart.Application.Services;
+﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Cart.Application
 {
@@ -8,8 +8,7 @@ namespace Cart.Application
 	{
 		public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 		{
-			services.AddScoped<ICartService, CartService>();
-
+			services.AddMediatR(Assembly.GetExecutingAssembly());
 			return services;
 		}
 	}

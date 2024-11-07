@@ -1,8 +1,8 @@
+using Catalog.API.Infrastructure;
+using Catalog.Application;
+using Catalog.Persistence;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Catalog.Persistence;
-using Catalog.Application;
-using Catalog.API.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +10,7 @@ builder.Services.AddSqlServerHealthCheck(builder.Configuration);
 
 builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
+builder.AddInfrastructure();
 
 builder.Services.AddControllers();
 
@@ -28,8 +29,8 @@ app.MapHealthChecks("/hc", new HealthCheckOptions
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -39,3 +40,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program 
+{
+	private Program(){}
+}

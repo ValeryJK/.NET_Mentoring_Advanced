@@ -3,8 +3,17 @@ using Cart.Persistence.Initialization;
 
 namespace Cart.API.Infrastructure
 {
+	/// <summary>
+	/// Provides bootstrap methods for the application.
+	/// </summary>
 	public static class Bootstrap
 	{
+		/// <summary>
+		/// Adds custom health checks to the service collection.
+		/// </summary>
+		/// <param name="services">The service collection.</param>
+		/// <param name="configuration">The application configuration.</param>
+		/// <returns>The modified service collection.</returns>
 		public static IServiceCollection AddCustomHealthChecks(this IServiceCollection services, IConfiguration configuration)
 		{
 			var mongoDbConnectionString = configuration["DatabaseSettings:ConnectionString"]
@@ -14,6 +23,10 @@ namespace Cart.API.Infrastructure
 			return services;
 		}
 
+		/// <summary>
+		/// Seeds the database with initial data.
+		/// </summary>
+		/// <param name="app">The web application instance.</param>
 		public static void SeedDatabase(this WebApplication app)
 		{
 			if (!app.Configuration.GetValue<bool>("DatabaseSettings:SeedDatabase")) return;

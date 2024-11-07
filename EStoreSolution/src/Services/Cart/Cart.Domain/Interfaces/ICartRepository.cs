@@ -2,9 +2,9 @@
 {
 	public interface ICartRepository
 	{
-		Task<Domain.Entities.Cart?> GetCartAsync(Guid cartId);
+		Task<Domain.Entities.Cart?> GetCartByIdAsync(string cartId);
 		Task<IEnumerable<Domain.Entities.Cart>> GetAllCartsAsync();
 		Task SaveCartAsync(Domain.Entities.Cart cart);
-		Task DeleteCartAsync(Guid cartId);
+		Task DeleteCartAsync(string cartId);
 	}
 }
