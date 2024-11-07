@@ -45,7 +45,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Catalog API", Version = "v1" });
+	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cart API", Version = "v1" });
 
 	var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 	var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
