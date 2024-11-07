@@ -1,6 +1,6 @@
-﻿using Catalog.Application.Interfaces;
-using Catalog.Application.Services;
+﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Catalog.Application
 {
@@ -8,9 +8,7 @@ namespace Catalog.Application
 	{
 		public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 		{
-			services.AddScoped<ICategoryService, CategoryService>();
-			services.AddScoped<IProductService, ProductService>();
-
+			services.AddMediatR(Assembly.GetExecutingAssembly());
 			return services;
 		}
 	}

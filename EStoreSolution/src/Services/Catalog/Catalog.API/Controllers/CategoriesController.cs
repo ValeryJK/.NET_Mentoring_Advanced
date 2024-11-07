@@ -1,64 +1,80 @@
-﻿using Catalog.Application.Interfaces;
-using Catalog.Domain.Entities;
+﻿using Asp.Versioning;
+using Catalog.API.Extensions;
+using Catalog.API.Resources;
+using Catalog.Application.Features.Categories.CreateCategory;
+using Catalog.Application.Features.Categories.DeleteCategory;
+using Catalog.Application.Features.Categories.GetCategories;
+using Catalog.Application.Features.Categories.GetCategory;
+using Catalog.Application.Features.Categories.UpdateCategory;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.API.Controllers
 {
-	[Route("categories")]
 	[ApiController]
+	[Route("api/v{version:apiVersion}/categories")]
+	[ApiVersion("1.0")]
 	public class CategoriesController : ControllerBase
 	{
-		private readonly ICategoryService _categoryService;
+		private readonly IMediator _mediator;
 
-		public CategoriesController(ICategoryService categoryService)
+		public CategoriesController(IMediator mediator)
 		{
-			_categoryService = categoryService;
+			_mediator = mediator;
 		}
 
-		[HttpGet("{id}")]
-		public async Task<IActionResult> Get(int id)
-		{
-			var category = await _categoryService.GetAsync(id);
-			if (category == null)
-				return NotFound();
-			return Ok(category);
-		}
-
+		/// <summary>
+		/// Gets a list of all categories.
+		/// </summary>
 		[HttpGet]
-		public async Task<IActionResult> GetAll()
+		public async Task<IActionResult> GetAllCategories()
 		{
-			var categories = await _categoryService.GetAllAsync();
-			return Ok(categories);
+			var result = await _mediator.Send(new GetCategoriesQuery());
+			return result.ToHttpResponse();
 		}
 
+		/// <summary>
+		/// Gets a specific category by ID.
+		/// </summary>
+		[HttpGet("{id}", Name = nameof(GetCategoryById))]
+		public async Task<IActionResult> GetCategoryById(int id)
+		{
+			var query = new GetCategoryQuery { Id = id };
+			var result = await _mediator.Send(query);
+
+			return result.ToHttpResponseWithHateoas(this, HateoasLinksFactory.GetCategoryLinks());
+		}
+
+		/// <summary>
+		/// Adds a new category.
+		/// </summary>
 		[HttpPost]
-		public async Task<IActionResult> Add([FromBody] Category category)
+		public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command)
 		{
-			if (!ModelState.IsValid)
-				return BadRequest(ModelState);
-
-			await _categoryService.AddAsync(category);
-			return CreatedAtAction(nameof(Get), new { id = category.Id }, category);
+			var result = await _mediator.Send(command);
+			return result.ToCreatedHttpResponse();
 		}
 
-		[HttpPut("{id}")]
-		public async Task<IActionResult> Update(int id, [FromBody] Category category)
+		/// <summary>
+		/// Updates an existing category.
+		/// </summary>
+		[HttpPut("{id}", Name = nameof(UpdateCategory))]
+		public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryCommand command)
 		{
-			if (id != category.Id)
-				return BadRequest("ID mismatch");
-
-			if (!ModelState.IsValid)
-				return BadRequest(ModelState);
-
-			await _categoryService.UpdateAsync(category);
-			return NoContent();
+			command.Id = id;
+			var result = await _mediator.Send(command);
+			return result.ToHttpResponse();
 		}
 
-		[HttpDelete("{id}")]
-		public async Task<IActionResult> Delete(int id)
+		/// <summary>
+		/// Deletes category and its related products.
+		/// </summary>
+		[HttpDelete("{id}", Name = nameof(DeleteCategory))]
+		public async Task<IActionResult> DeleteCategory(int id)
 		{
-			await _categoryService.DeleteAsync(id);
-			return NoContent();
+			var command = new DeleteCategoryCommand { Id = id };
+			var result = await _mediator.Send(command);
+			return result.ToHttpResponse();
 		}
 	}
 }
