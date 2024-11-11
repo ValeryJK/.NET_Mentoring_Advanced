@@ -18,7 +18,7 @@ namespace Cart.Persistence.Initialization
 			{
 				new ()
 				{
-					Id = Guid.NewGuid(),
+					Id = Guid.NewGuid().ToString(),
 					CartItems = new List<CartItem>
 					{
 						new CartItem
