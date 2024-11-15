@@ -1,7 +1,9 @@
 ﻿using Catalog.Application.Validation;
 using Catalog.Domain.Interfaces;
+using Contracts.Messages;
 using FluentResults;
 using Mapster;
+using MassTransit;
 using MediatR;
 
 namespace Catalog.Application.Features.Products.UpdateProduct
@@ -21,11 +23,13 @@ namespace Catalog.Application.Features.Products.UpdateProduct
 	{
 		private readonly IProductRepository _productRepository;
 		private readonly ICategoryRepository _categoryRepository;
+		private readonly IPublishEndpoint _publishEndpoint;
 
-		public UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository)
+		public UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IPublishEndpoint publishEndpoint)
 		{
 			_productRepository = productRepository;
 			_categoryRepository = categoryRepository;
+			_publishEndpoint = publishEndpoint;
 		}
 
 		public async Task<Result<UpdateProductCommandResponse>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -47,6 +51,15 @@ namespace Catalog.Application.Features.Products.UpdateProduct
 
 			await _productRepository.UpdateAsync(product);
 			var response = product.Adapt<UpdateProductCommandResponse>();
+
+			var updateEvent = new UpdateCartItemEvent
+			{
+				Id = request.Id,
+				Price = request.Price,
+				Name = request.Name
+			};
+
+			await _publishEndpoint.Publish(updateEvent);
 
 			return Result.Ok(response);
 		}
