@@ -4,13 +4,31 @@ using Cart.API.Infrastructure;
 using Cart.Application;
 using Cart.Persistence;
 using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Tokens;
 using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry()
+	.WithTracing(tracingBuilder =>
+	{
+		tracingBuilder
+			.AddAspNetCoreInstrumentation()
+			.AddHttpClientInstrumentation()
+			.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Cart.API"))
+			.AddOtlpExporter(options =>
+			{
+				var endpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"] ?? string.Empty;
+				options.Endpoint = new Uri(endpoint);
+			});
+	});
 
 builder.Services.AddCustomHealthChecks(builder.Configuration);
 
@@ -42,15 +60,31 @@ builder.Services.AddApplicationServices();
 builder.Services.AddPersistenceServices(builder.Configuration);
 
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGenWithAuth(builder.Configuration);
 
-builder.Services.AddSwaggerGen(c =>
-{
-	c.SwaggerDoc("v1", new OpenApiInfo { Title = "Cart API", Version = "v1" });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+	.AddJwtBearer(options =>
+	{
+		options.RequireHttpsMetadata = false;
+		options.Authority = builder.Configuration["Authentication:Authority"];
+		options.Audience = builder.Configuration["Authentication:Audience"];
+		options.TokenValidationParameters = new TokenValidationParameters
+		{
+			ValidateIssuer = true,
+			ValidIssuer = builder.Configuration["Authentication:ValidIssuer"],
+			ValidateAudience = false,
+			ValidAudience = builder.Configuration["Authentication:Audience"],
+			ValidateLifetime = true
+		};
+	});
 
-	var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-	var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-	c.IncludeXmlComments(xmlPath);
-});
+builder.Services.AddAuthorizationBuilder()
+	.AddPolicy("RoleAccessPolicy", policy =>
+	{
+		policy.RequireAssertion(context =>
+			context.User.FindFirst("realm_access")?.Value?.Contains("manager") == true ||
+			context.User.FindFirst("realm_access")?.Value?.Contains("store_customer") == true);
+	});
 
 builder.Services.ConfigureOptions<ConfigureSwaggerOptions>();
 
@@ -63,6 +97,8 @@ app.MapHealthChecks("/hc", new HealthCheckOptions
 });
 
 app.UseHttpMetrics();
+
+app.UseMiddleware<TokenLoggingMiddleware>();
 
 if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Test")
 {
@@ -81,7 +117,10 @@ if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Test"
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.SeedDatabase();
 

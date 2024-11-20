@@ -4,6 +4,7 @@ using Cart.Application.Features.CreateCart;
 using Cart.Application.Features.DeleteCart;
 using Cart.Application.Features.GetCart;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cart.API.Controllers.V1
@@ -14,6 +15,7 @@ namespace Cart.API.Controllers.V1
 	[ApiVersion("1.0", Deprecated = false)]
 	[Route("api/v{version:apiversion}/carts")]
 	[ApiController]
+	[Authorize(Policy = "RoleAccessPolicy")]
 	public class CartsController : ControllerBase
 	{
 		private readonly IMediator _mediator;
@@ -57,7 +59,7 @@ namespace Cart.API.Controllers.V1
 		/// <param name="cartId">The unique identifier of the cart.</param>
 		/// <param name="itemId">The unique identifier of the item to remove.</param>
 		/// <returns>A 204 status code if the item was removed successfully.</returns>
-		[HttpDelete("{cartId}/items/{itemId}")]
+		[HttpDelete("{cartId}/items/{itemId}")]		
 		public async Task<IActionResult> DeleteItem(string cartId, int itemId)
 		{
 			var command = new DeleteCartItemCommand { CartId = cartId, ItemId = itemId };

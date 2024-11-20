@@ -7,6 +7,7 @@ using Catalog.Application.Features.Categories.GetCategories;
 using Catalog.Application.Features.Categories.GetCategory;
 using Catalog.Application.Features.Categories.UpdateCategory;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.API.Controllers
@@ -27,6 +28,7 @@ namespace Catalog.API.Controllers
 		/// Gets a list of all categories.
 		/// </summary>
 		[HttpGet]
+		[Authorize(Policy = "ReadAccessPolicy")]
 		public async Task<IActionResult> GetAllCategories()
 		{
 			var result = await _mediator.Send(new GetCategoriesQuery());
@@ -37,6 +39,7 @@ namespace Catalog.API.Controllers
 		/// Gets a specific category by ID.
 		/// </summary>
 		[HttpGet("{id}", Name = nameof(GetCategoryById))]
+		[Authorize(Policy = "ReadAccessPolicy")]
 		public async Task<IActionResult> GetCategoryById(int id)
 		{
 			var query = new GetCategoryQuery { Id = id };
@@ -49,6 +52,7 @@ namespace Catalog.API.Controllers
 		/// Adds a new category.
 		/// </summary>
 		[HttpPost]
+		[Authorize(Policy = "CreateAccessPolicy")]
 		public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryCommand command)
 		{
 			var result = await _mediator.Send(command);
@@ -59,6 +63,7 @@ namespace Catalog.API.Controllers
 		/// Updates an existing category.
 		/// </summary>
 		[HttpPut("{id}", Name = nameof(UpdateCategory))]
+		[Authorize(Policy = "UpdateAccessPolicy")]
 		public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryCommand command)
 		{
 			command.Id = id;
@@ -70,6 +75,7 @@ namespace Catalog.API.Controllers
 		/// Deletes category and its related products.
 		/// </summary>
 		[HttpDelete("{id}", Name = nameof(DeleteCategory))]
+		[Authorize(Policy = "DeleteAccessPolicy")]
 		public async Task<IActionResult> DeleteCategory(int id)
 		{
 			var command = new DeleteCategoryCommand { Id = id };
