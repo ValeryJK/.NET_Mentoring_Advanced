@@ -1,15 +1,6 @@
 services:
-  cartdb:
-    container_name: cartdb    
-    restart: always
-    ports:
-      - "27018:27017"   
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - my_network      
-  
   mssqldb:
+    container_name: mssql-db
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: "Admin!1234"
@@ -18,36 +9,50 @@ services:
     volumes:
       - db_mssql_data:/var/opt/mssql
     networks:
+      - my_network  
+ 
+  cartdb:
+    container_name: cart-db    
+    restart: always
+    ports:
+      - "27018:27017"   
+    volumes:
+      - mongo_data:/data/db
+    networks:
       - my_network
-            
+
   cart.api:
     container_name: cart.api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - "DatabaseSettings__ConnectionString=mongodb://cartdb:27017"
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
     ports:
       - "8000:8080"
       - "8001:8081"
     depends_on:
-      - cartdb
+      - cartdb      
+      - rabbitmq
     networks:
-      - my_network 
+      - my_network
 
   catalog.api:   
     container_name: catalog.api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - DatabaseSettings__ConnectionString=Server=mssqldb;Database=CatalogDb;User Id=sa;Password=Admin!1234;TrustServerCertificate=True
+      - DatabaseSettings__ConnectionString=Server=mssql-db;Database=CatalogDb;User Id=sa;Password=Admin!1234;TrustServerCertificate=True
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
     ports:
       - "8002:8080" 
       - "8003:8081"
     depends_on:
       - mssqldb
+      - rabbitmq
     networks:
       - my_network
   
-  healthchecks-ui:
-    container_name: healthchecks-ui
+  healthchecks-web:
+    container_name: healthchecks-web
     build:
       context: .
       dockerfile: src/WebStatus/HealthCheck.Web/Dockerfile
@@ -57,24 +62,40 @@ services:
       - "8005:8080"
     depends_on:
       - cart.api
-      - catalog.api      
+      - catalog.api    
+    volumes:
+      - healthchecks-web-data:/storage 
     networks:
       - my_network
-    volumes:
-      - healthchecks-ui-storage:/storage
-
-  portainer:
-    container_name: portainer
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
     restart: always
     ports:
-      - "8080:8000"
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest 
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - my_network      
+
+  portainer:
+    container_name: portainer-app
+    restart: always
+    ports:
       - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    networks:
+      - my_network
 
   prometheus:
-    container_name: prometheus
+    container_name: prometheus-app
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -83,8 +104,7 @@ services:
       - my_network
       
   grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
+    container_name: grafana-app
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
@@ -92,14 +112,11 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     networks:
-      - my_network      
+      - my_network
 
 volumes:
   mongo_data:
-  grafana_data:
-  healthchecks-ui-storage:
   db_mssql_data:
-  portainer_data:
 
 networks:
   my_network:

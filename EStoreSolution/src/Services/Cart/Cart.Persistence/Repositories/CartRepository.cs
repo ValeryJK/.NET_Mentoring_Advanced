@@ -1,4 +1,5 @@
-﻿using Cart.Domain.Interfaces;
+﻿using Cart.Domain.Entities;
+using Cart.Domain.Interfaces;
 
 namespace Cart.Persistence.Repositories
 {
@@ -33,6 +34,14 @@ namespace Cart.Persistence.Repositories
 		public async Task DeleteCartAsync(string cartId)
 		{
 			await _carts.DeleteOneAsync(c => c.Id == cartId);
+		}
+
+		public async Task<CartItem?> GetItemByIdAsync(int Id)
+		{
+			using var cursor = await _carts.FindAsync(_ => true);
+			var carts = await cursor.ToListAsync();
+
+			return carts.SelectMany(cart => cart.CartItems).FirstOrDefault(item => item.Id == Id);
 		}
 	}
 }
