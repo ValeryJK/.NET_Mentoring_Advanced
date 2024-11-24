@@ -1,13 +1,13 @@
 services:
   cartdb:
-    image: mongo:latest
+    image: mongo:latest  
 
   keycloakdb:
     image: postgres:latest
 
   mssqldb:
-    image: mcr.microsoft.com/mssql/server:2019-latest    
-
+    image: mcr.microsoft.com/mssql/server:2019-latest
+      
   cart.api:
     image: ${DOCKER_REGISTRY-}cartapi
     build:
@@ -18,22 +18,26 @@ services:
     image: ${DOCKER_REGISTRY-}catalogapi
     build:
       context: .
-      dockerfile: src/Services/Catalog/Catalog.API/Dockerfile  
-
+      dockerfile: src/Services/Catalog/Catalog.API/Dockerfile    
+  
   keycloak:
     image: quay.io/keycloak/keycloak:latest
 
+  rabbitmq:
+    image: rabbitmq:latest
+
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:latest:latest
 
   prometheus:
     image: prom/prometheus:latest
 
   grafana:
     image: grafana/grafana:latest
-
+  
 volumes:
   mongo_data:
   grafana_data:
   healthchecks-web-data:
   portainer_data:
+  rabbitmq_data:

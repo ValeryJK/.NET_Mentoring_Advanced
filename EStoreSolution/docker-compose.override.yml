@@ -33,7 +33,7 @@ services:
       - db_keycloak_data:/var/lib/postgresql/data
     networks:
       - my_network  
-      
+   
   cart.api:
     container_name: cart.api
     environment:
@@ -43,13 +43,15 @@ services:
       - "DatabaseSettings__ConnectionString=mongodb://cartdb:27017"
       - Authentication__Authority=http://keycloak-app:8080/auth/realms/estore-realm
       - Authorization__AuthorizationUrl=http://keycloak-app:8080/auth/realms/estore-realm/protocol/openid-connect/auth
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
     ports:
       - "8000:8080"
       - "8001:8081"
     depends_on:
-      - cartdb
+      - cartdb      
       - keycloak
       - jaeger
+      - rabbitmq
     networks:
       - my_network
 
@@ -59,9 +61,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
-      - DatabaseSettings__ConnectionString=Server=mssql-db;Database=CatalogDb;User Id=sa;Password=Admin!1234;TrustServerCertificate=True
+      - DatabaseSettings__ConnectionString=Server=mssql--db;Database=CatalogDb;User Id=sa;Password=Admin!1234;TrustServerCertificate=True
       - Authentication__Authority=http://keycloak-app:8080/auth/realms/estore-realm
       - Authorization__AuthorizationUrl=http://keycloak-app:8080/auth/realms/estore-realm/protocol/openid-connect/auth
+      - "EventBusSettings__HostAddress=amqp://guest:guest@rabbitmq:5672"
     ports:
       - "8002:8080" 
       - "8003:8081"
@@ -69,6 +72,7 @@ services:
       - mssqldb
       - keycloak
       - jaeger
+      - rabbitmq
     networks:
       - my_network
   
@@ -88,7 +92,7 @@ services:
       - healthchecks-web-data:/storage 
     networks:
       - my_network
-  
+
   portainer:
     container_name: portainer-app
     restart: always

@@ -32,7 +32,7 @@ builder.Services.AddPersistenceServices(builder.Configuration);
 builder.AddInfrastructure();
 
 builder.Services.AddControllers();
-
+builder.Services.AddMassTransitConfiguration(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuth(builder.Configuration);
 

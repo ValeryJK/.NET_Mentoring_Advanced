@@ -18,6 +18,7 @@
     <PackageReference Include="AspNetCore.HealthChecks.MongoDb" Version="8.1.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.1" />
     <PackageReference Include="FluentValidation" Version="11.10.0" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.1" />
     <PackageReference Include="MediatR" Version="11.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.2.1" />
@@ -32,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Contracts\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Cart.Application\Cart.Application.csproj" />
     <ProjectReference Include="..\Cart.Persistence\Cart.Persistence.csproj" />
   </ItemGroup>

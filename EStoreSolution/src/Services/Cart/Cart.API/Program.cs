@@ -32,6 +32,7 @@ builder.Services.AddOpenTelemetry()
 
 builder.Services.AddCustomHealthChecks(builder.Configuration);
 
+builder.Services.AddMassTransitConfiguration(builder.Configuration);
 builder.Services.AddControllers();
 
 builder.Services.AddApiVersioning(option =>
