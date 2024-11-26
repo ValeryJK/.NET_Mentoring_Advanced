@@ -4,11 +4,60 @@ using Catalog.Persistence.Initialization.Seed;
 using FluentValidation.AspNetCore;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 
 namespace Catalog.API.Infrastructure
 {
 	public static class Bootstrap
 	{
+		public static IServiceCollection AddSwaggerGenWithAuth(this IServiceCollection services, IConfiguration configuration)
+		{
+			services.AddSwaggerGen(o =>
+			{
+				o.CustomSchemaIds(id => id.FullName!.Replace('+', '-'));
+
+				o.AddSecurityDefinition("Keycloak", new OpenApiSecurityScheme
+				{
+					Type = SecuritySchemeType.OAuth2,
+					Flows = new OpenApiOAuthFlows
+					{
+						Implicit = new OpenApiOAuthFlow
+						{
+							AuthorizationUrl = new Uri(configuration["Authentication:AuthorizationUrl"] 
+								?? throw new InvalidOperationException("Authentication:AuthorizationUrl configuration is missing.")),
+							Scopes = new Dictionary<string, string>
+							{
+								{ "openid", "OpenID scope" },
+								{ "profile", "Profile scope" }
+							}
+						}
+					}
+				});
+
+				var securityRequirement = new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "Keycloak"
+							},
+							In = ParameterLocation.Header,
+							Name = "Authorization",
+							Scheme = "Bearer"
+						},
+						new List<string> { "openid", "profile" }
+					}
+				};
+
+					o.AddSecurityRequirement(securityRequirement);
+				});
+
+			return services;
+		}
+
 		public static IServiceCollection AddSqlServerHealthCheck(this IServiceCollection services, IConfiguration configuration)
 		{
 			var connectionString = configuration["DatabaseSettings:ConnectionString"];

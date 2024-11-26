@@ -7,6 +7,7 @@ using Catalog.Application.Features.Products.GetProduct;
 using Catalog.Application.Features.Products.GetProducts;
 using Catalog.Application.Features.Products.UpdateProduct;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.API.Controllers
@@ -27,6 +28,7 @@ namespace Catalog.API.Controllers
 		/// Gets a paginated list of products, optionally filtered by category ID.
 		/// </summary>
 		[HttpGet]
+		[Authorize(Policy = "ReadAccessPolicy")]
 		public async Task<IActionResult> GetPagedProducts(
 			[FromQuery] int pageNumber = 1,
 			[FromQuery] int pageSize = 10,
@@ -47,6 +49,7 @@ namespace Catalog.API.Controllers
 		/// Gets a specific product by ID.
 		/// </summary>
 		[HttpGet("{id}", Name = nameof(GetProductById))]
+		[Authorize(Policy = "ReadAccessPolicy")]
 		public async Task<IActionResult> GetProductById(int id)
 		{
 			var query = new GetProductQuery { Id = id };
@@ -58,6 +61,7 @@ namespace Catalog.API.Controllers
 		/// Adds a new product.
 		/// </summary>
 		[HttpPost]
+		[Authorize(Policy = "CreateAccessPolicy")]
 		public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
 		{
 			var result = await _mediator.Send(command);
@@ -68,6 +72,7 @@ namespace Catalog.API.Controllers
 		/// Updates an existing product.
 		/// </summary>
 		[HttpPut("{id}", Name = nameof(UpdateProduct))]
+		[Authorize(Policy = "UpdateAccessPolicy")]
 		public async Task<IActionResult> UpdateProduct(int id, [FromBody] UpdateProductCommand command)
 		{
 			command.Id = id;
@@ -79,6 +84,7 @@ namespace Catalog.API.Controllers
 		/// Deletes a product by ID.
 		/// </summary>
 		[HttpDelete("{id}", Name = nameof(DeleteProduct))]
+		[Authorize(Policy = "DeleteAccessPolicy")]
 		public async Task<IActionResult> DeleteProduct(int id)
 		{
 			var command = new DeleteProductCommand { Id = id };

@@ -16,7 +16,7 @@ namespace Cart.IntegrationTests
 
 		public CartsControllerIntegrationTests(CustomWebApplicationFactory<Program> factory)
 		{
-			_client = factory.CreateClient();
+			_client = factory.CreateAuthenticatedClientAsync().GetAwaiter().GetResult();
 			_database = factory.Database;
 		}
 
@@ -95,7 +95,7 @@ namespace Cart.IntegrationTests
 			cart.Should().NotBeNull();
 			cart!.CartItems.Should().BeEmpty();
 		}
-		
+
 		internal void Dispose()
 		{
 			_database.DropCollection("Carts");

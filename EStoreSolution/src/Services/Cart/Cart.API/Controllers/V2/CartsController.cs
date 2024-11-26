@@ -4,6 +4,7 @@ using Cart.Application.Features.CreateCart;
 using Cart.Application.Features.DeleteCart;
 using Cart.Application.Features.GetCart;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cart.API.Controllers.V2
@@ -14,6 +15,7 @@ namespace Cart.API.Controllers.V2
 	[ApiVersion("2.0", Deprecated = false)]
 	[Route("api/v{version:apiversion}/carts")]
 	[ApiController]
+	[Authorize(Policy = "RoleAccessPolicy")]
 	public class CartsController : ControllerBase
 	{
 		private readonly IMediator _mediator;
