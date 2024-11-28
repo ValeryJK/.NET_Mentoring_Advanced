@@ -112,6 +112,10 @@ ipch/
 *.VC.db
 *.VC.VC.opendb
 
+.sonarqube/
+.nuke/
+artifacts/
+
 # Visual Studio profiler
 *.psess
 *.vsp
