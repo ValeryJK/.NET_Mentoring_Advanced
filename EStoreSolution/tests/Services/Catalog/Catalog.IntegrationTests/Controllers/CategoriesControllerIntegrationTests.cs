@@ -1,20 +1,23 @@
-﻿using Catalog.Application.Features.Categories.CreateCategory;
+﻿using System.Text;
+using Catalog.Application.Features.Categories.CreateCategory;
 using Catalog.IntegrationTests.Base;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
-using System.Text;
 
 namespace Catalog.IntegrationTests.Controllers
 {
     public class CategoriesControllerIntegrationTests : BaseIntegrationTest
-	{
-		public CategoriesControllerIntegrationTests(WebApplicationFactory<Program> factory) : base(factory) { }
+    {
+        public CategoriesControllerIntegrationTests(WebApplicationFactory<Program> factory)
+            : base(factory)
+        {
+        }
 
-		[Fact]
+        [Fact]
         public async Task GetAllCategories_ReturnsSuccessAndCorrectContentType()
         {
             // Act
-            var response = await _httpClient.GetAsync("/api/v1/categories");
+            var response = await this.httpClient.GetAsync("/api/v1/categories");
 
             // Assert
             response.EnsureSuccessStatusCode();
@@ -34,7 +37,7 @@ namespace Catalog.IntegrationTests.Controllers
             var content = new StringContent(JsonConvert.SerializeObject(newCategory), Encoding.UTF8, "application/json");
 
             // Act
-            var response = await _httpClient.PostAsync("/api/v1/categories", content);
+            var response = await this.httpClient.PostAsync("/api/v1/categories", content);
 
             // Assert
             response.EnsureSuccessStatusCode();

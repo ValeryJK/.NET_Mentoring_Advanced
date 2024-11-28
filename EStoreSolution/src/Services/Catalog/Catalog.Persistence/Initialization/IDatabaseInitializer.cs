@@ -1,7 +1,7 @@
 ﻿namespace Catalog.Persistence.Initialization
 {
-	public interface IDatabaseInitializer
-	{
-		Task Initialize(CancellationToken cancellationToken);
-	}
+    public interface IDatabaseInitializer
+    {
+        Task Initialize(CancellationToken cancellationToken);
+    }
 }

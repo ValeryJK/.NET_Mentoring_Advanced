@@ -4,24 +4,25 @@ using Catalog.Persistence.Context;
 
 namespace Catalog.Persistence.Repositories
 {
-	public class CategoryRepository : BaseRepository<Category>, ICategoryRepository
-	{
-		public CategoryRepository(ApplicationDbContext dbContext) : base(dbContext)
-		{
-		}
+    public class CategoryRepository : BaseRepository<Category>, ICategoryRepository
+    {
+        public CategoryRepository(ApplicationDbContext dbContext)
+            : base(dbContext)
+        {
+        }
 
-		public async Task DeleteCategoryWithProductsAsync(int categoryId)
-		{
-			var category = await _dbContext.Categories
-				.Include(c => c.Products)
-				.FirstOrDefaultAsync(c => c.Id == categoryId);
+        public async Task DeleteCategoryWithProductsAsync(int categoryId)
+        {
+            var category = await this.dbContext.Categories
+                .Include(c => c.Products)
+                .FirstOrDefaultAsync(c => c.Id == categoryId);
 
-			if (category is not null)
-			{
-				_dbContext.Products.RemoveRange(category.Products);
-				_dbContext.Categories.Remove(category);
-				await _dbContext.SaveChangesAsync();
-			}
-		}
-	}
+            if (category is not null)
+            {
+                this.dbContext.Products.RemoveRange(category.Products);
+                this.dbContext.Categories.Remove(category);
+                await this.dbContext.SaveChangesAsync();
+            }
+        }
+    }
 }

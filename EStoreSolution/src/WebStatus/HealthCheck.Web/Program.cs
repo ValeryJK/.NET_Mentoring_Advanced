@@ -8,8 +8,8 @@ app.UseRouting();
 
 app.MapHealthChecksUI(options =>
 {
-	options.UIPath = "/health-ui";
-	options.ApiPath = "/health-ui-api";
+    options.UIPath = "/health-ui";
+    options.ApiPath = "/health-ui-api";
 });
 
 await app.RunAsync();

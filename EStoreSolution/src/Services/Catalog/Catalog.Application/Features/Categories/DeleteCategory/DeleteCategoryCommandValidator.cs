@@ -2,12 +2,12 @@
 
 namespace Catalog.Application.Features.Categories.DeleteCategory
 {
-	public class DeleteCategoryCommandValidator : AbstractValidator<DeleteCategoryCommand>
-	{
-		public DeleteCategoryCommandValidator()
-		{
-			RuleFor(p => p.Id)
-				.NotNull();
-		}
-	}
+    public class DeleteCategoryCommandValidator : AbstractValidator<DeleteCategoryCommand>
+    {
+        public DeleteCategoryCommandValidator()
+        {
+            this.RuleFor(p => p.Id)
+                .NotNull();
+        }
+    }
 }

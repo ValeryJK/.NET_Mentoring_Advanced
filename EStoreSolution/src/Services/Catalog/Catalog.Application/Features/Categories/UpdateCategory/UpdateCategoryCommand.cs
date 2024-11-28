@@ -5,35 +5,37 @@ using MediatR;
 
 namespace Catalog.Application.Features.Categories.UpdateCategory
 {
-	public class UpdateCategoryCommand : IRequest<Result<Unit>>
-	{
-		public int Id { get; set; }
-		public required string Name { get; set; }
-		public required string Image { get; set; }
-	}
+    public class UpdateCategoryCommand : IRequest<Result<Unit>>
+    {
+        public int Id { get; set; }
 
-	public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<Unit>>
-	{
-		private readonly ICategoryRepository _categoryRepository;
+        public required string Name { get; set; }
 
-		public UpdateCategoryCommandHandler(ICategoryRepository categoryRepository)
-		{
-			_categoryRepository = categoryRepository;
-		}
+        public required string Image { get; set; }
+    }
 
-		public async Task<Result<Unit>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
-		{
-			var category = await _categoryRepository.GetByIdAsync(request.Id);
-			if (category == null)
-			{
-				return Result.Fail(new NotFoundError($"Category with id {request.Id} cannot be found"));
-			}
+    public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<Unit>>
+    {
+        private readonly ICategoryRepository categoryRepository;
 
-			category.Name = request.Name;
-			category.Image = request.Image;
-			await _categoryRepository.UpdateAsync(category);
+        public UpdateCategoryCommandHandler(ICategoryRepository categoryRepository)
+        {
+            this.categoryRepository = categoryRepository;
+        }
 
-			return Result.Ok(Unit.Value);
-		}
-	}
+        public async Task<Result<Unit>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+        {
+            var category = await this.categoryRepository.GetByIdAsync(request.Id);
+            if (category == null)
+            {
+                return Result.Fail(new NotFoundError($"Category with id {request.Id} cannot be found"));
+            }
+
+            category.Name = request.Name;
+            category.Image = request.Image;
+            await this.categoryRepository.UpdateAsync(category);
+
+            return Result.Ok(Unit.Value);
+        }
+    }
 }

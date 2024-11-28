@@ -3,21 +3,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Catalog.Persistence.Initialization
 {
-	public class ApplicationDbSeeder : IApplicationDbSeeder
-	{
-		private readonly ICustomSeedRunner _seederRunner;
-		private readonly ILogger<ApplicationDbSeeder> _logger;
+    public class ApplicationDbSeeder : IApplicationDbSeeder
+    {
+        private readonly ICustomSeedRunner seederRunner;
+        private readonly ILogger<ApplicationDbSeeder> logger;
 
-		public ApplicationDbSeeder(ICustomSeedRunner seederRunner, ILogger<ApplicationDbSeeder> logger)
-		{
-			_seederRunner = seederRunner;
-			_logger = logger;
-		}
+        public ApplicationDbSeeder(ICustomSeedRunner seederRunner, ILogger<ApplicationDbSeeder> logger)
+        {
+            this.seederRunner = seederRunner;
+            this.logger = logger;
+        }
 
-		public async Task SeedDatabase(bool isDevelopment)
-		{
-			_logger.LogInformation("Running seed runners");
-			await _seederRunner.RunSeeders(isDevelopment);
-		}
-	}
+        public async Task SeedDatabase(bool isDevelopment)
+        {
+            this.logger.LogInformation("Running seed runners");
+            await this.seederRunner.RunSeeders(isDevelopment);
+        }
+    }
 }

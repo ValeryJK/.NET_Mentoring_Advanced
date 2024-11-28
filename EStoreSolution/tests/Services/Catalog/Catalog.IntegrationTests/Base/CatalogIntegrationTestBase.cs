@@ -5,42 +5,42 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Catalog.IntegrationTests.Base
 {
-	public class CatalogIntegrationTestBase
-	{
-		protected readonly ApplicationDbContext CatalogContext;
+    public class CatalogIntegrationTestBase
+    {
+        protected readonly ApplicationDbContext CatalogContext;
 
-		public CatalogIntegrationTestBase()
-		{
-			var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
+        public CatalogIntegrationTestBase()
+        {
+            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
 
-			bool useInMemoryDatabase = configuration.GetValue<bool>("UseInMemoryDatabase");
+            bool useInMemoryDatabase = configuration.GetValue<bool>("UseInMemoryDatabase");
 
-			var serviceCollection = new ServiceCollection();
-			if (useInMemoryDatabase)
-			{
-				serviceCollection.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("InMemoryCatalogTestDb"));
-			}
-			else
-			{
-				serviceCollection.AddDbContext<ApplicationDbContext>(options =>
-					options.UseSqlServer(configuration.GetConnectionString("DatabaseSettings:ConnectionString")));
-			}
+            var serviceCollection = new ServiceCollection();
+            if (useInMemoryDatabase)
+            {
+                serviceCollection.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase("InMemoryCatalogTestDb"));
+            }
+            else
+            {
+                serviceCollection.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlServer(configuration.GetConnectionString("DatabaseSettings:ConnectionString")));
+            }
 
-			var serviceProvider = serviceCollection.BuildServiceProvider();
-			var scope = serviceProvider.CreateScope();
-			CatalogContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var scope = serviceProvider.CreateScope();
+            this.CatalogContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-			if (!useInMemoryDatabase)
-			{
-				CatalogContext.Database.Migrate();
-			}
-		}
+            if (!useInMemoryDatabase)
+            {
+                this.CatalogContext.Database.Migrate();
+            }
+        }
 
-		protected void CleanDatabase()
-		{
-			CatalogContext.Categories.RemoveRange(CatalogContext.Categories);
-			CatalogContext.Products.RemoveRange(CatalogContext.Products);
-			CatalogContext.SaveChanges();
-		}
-	}
+        protected void CleanDatabase()
+        {
+            this.CatalogContext.Categories.RemoveRange(this.CatalogContext.Categories);
+            this.CatalogContext.Products.RemoveRange(this.CatalogContext.Products);
+            this.CatalogContext.SaveChanges();
+        }
+    }
 }

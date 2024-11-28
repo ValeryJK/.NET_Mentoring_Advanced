@@ -5,52 +5,51 @@ using Moq;
 
 namespace Cart.UnitTests.Command
 {
-	public class DeleteCartCommandHandlerTests
-	{
-		private readonly DeleteCartCommandHandler _handler;
-		private readonly Mock<ICartRepository> _cartRepositoryMock;
+    public class DeleteCartCommandHandlerTests
+    {
+        private readonly DeleteCartCommandHandler handler;
+        private readonly Mock<ICartRepository> cartRepositoryMock;
 
-		public DeleteCartCommandHandlerTests()
-		{
-			_cartRepositoryMock = new Mock<ICartRepository>();
-			_handler = new DeleteCartCommandHandler(_cartRepositoryMock.Object);
-		}
+        public DeleteCartCommandHandlerTests()
+        {
+            this.cartRepositoryMock = new Mock<ICartRepository>();
+            this.handler = new DeleteCartCommandHandler(this.cartRepositoryMock.Object);
+        }
 
-		[Fact]
-		public async Task Handle_DeletesCart_WhenCartExists()
-		{
-			// Arrange
-			var cartId = "test-cart-id";
-			var cart = new Cart.Domain.Entities.Cart { Id = cartId };
+        [Fact]
+        public async Task Handle_DeletesCart_WhenCartExists()
+        {
+            // Arrange
+            var cartId = "test-cart-id";
+            var cart = new Cart.Domain.Entities.Cart { Id = cartId };
 
-			_cartRepositoryMock
-				.Setup(r => r.GetCartByIdAsync(cartId))
-				.ReturnsAsync(cart);
+            this.cartRepositoryMock
+                .Setup(r => r.GetCartByIdAsync(cartId))
+                .ReturnsAsync(cart);
 
-			// Act
-			var result = await _handler.Handle(new DeleteCartCommand { CartId = cartId }, CancellationToken.None);
+            // Act
+            var result = await this.handler.Handle(new DeleteCartCommand { CartId = cartId }, CancellationToken.None);
 
-			// Assert
-			Assert.True(result.IsSuccess);
-			_cartRepositoryMock.Verify(r => r.DeleteCartAsync(cartId), Times.Once);
-		}
+            // Assert
+            Assert.True(result.IsSuccess);
+            this.cartRepositoryMock.Verify(r => r.DeleteCartAsync(cartId), Times.Once);
+        }
 
-		[Fact]
-		public async Task Handle_ReturnsNotFound_WhenCartDoesNotExist()
-		{
-			// Arrange
-			var cartId = "non-existent-cart-id";
+        [Fact]
+        public async Task Handle_ReturnsNotFound_WhenCartDoesNotExist()
+        {
+            // Arrange
+            var cartId = "non-existent-cart-id";
 
-			_cartRepositoryMock.Setup(r => r.GetCartByIdAsync(cartId));
+            this.cartRepositoryMock.Setup(r => r.GetCartByIdAsync(cartId));
 
-			// Act
-			var result = await _handler.Handle(new DeleteCartCommand { CartId = cartId }, CancellationToken.None);
+            // Act
+            var result = await this.handler.Handle(new DeleteCartCommand { CartId = cartId }, CancellationToken.None);
 
-			// Assert
-			Assert.False(result.IsSuccess);
-			Assert.IsType<NotFoundError>(result.Errors[0]);
-			_cartRepositoryMock.Verify(r => r.DeleteCartAsync(It.IsAny<string>()), Times.Never);
-		}
-	}
-
+            // Assert
+            Assert.False(result.IsSuccess);
+            Assert.IsType<NotFoundError>(result.Errors[0]);
+            this.cartRepositoryMock.Verify(r => r.DeleteCartAsync(It.IsAny<string>()), Times.Never);
+        }
+    }
 }

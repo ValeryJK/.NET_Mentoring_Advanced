@@ -5,91 +5,94 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Catalog.API.Extensions
 {
-	public static class ResultExtensions
-	{
-		public static ActionResult ToHttpResponse<T>(this Result<T> result)
-		{
-			if (result.IsSuccess)
-			{
-				if (result.ValueOrDefault is Unit)
-				{
-					return new NoContentResult();
-				}
-				return new OkObjectResult(result.Value);
-			}
-			return HandleError(result);
-		}
+    public static class ResultExtensions
+    {
+        public static ActionResult ToHttpResponse<T>(this Result<T> result)
+        {
+            if (result.IsSuccess)
+            {
+                if (result.ValueOrDefault is Unit)
+                {
+                    return new NoContentResult();
+                }
 
-		public static ActionResult ToHttpResponseWithHateoas<T>(
-			this Result<T> result,
-			ControllerBase controller,
-			Dictionary<string, (string ActionName, string Method)> links) where T : class
-			{
-				if (result.IsSuccess)
-				{
-					var resource = result.Value.ToHateoasResource(controller, links);
-					return new OkObjectResult(resource);
-				}
+                return new OkObjectResult(result.Value);
+            }
 
-				return HandleError(result);
-			}
+            return HandleError(result);
+        }
 
-		public static ActionResult ToCreatedHttpResponse<T>(this Result<T> result)
-		{
-			if (result.IsSuccess)
-			{
-				return new ObjectResult(result.Value)
-				{
-					StatusCode = StatusCodes.Status201Created
-				};
-			}
-			return HandleError(result);
-		}
+        public static ActionResult ToHttpResponseWithHateoas<T>(
+            this Result<T> result,
+            ControllerBase controller,
+            Dictionary<string, (string ActionName, string Method)> links)
+            where T : class
+        {
+            if (result.IsSuccess)
+            {
+                var resource = result.Value.ToHateoasResource(controller, links);
+                return new OkObjectResult(resource);
+            }
 
-		private static ObjectResult HandleError<T>(Result<T> result)
-		{
-			var firstError = result.Errors.FirstOrDefault();
+            return HandleError(result);
+        }
 
-			if (firstError is ValidationError)
-			{
-				return HandleValidationError(result);
-			}
-			else if (firstError is NotFoundError)
-			{
-				return HandleNotFoundError(result);
-			}
+        public static ActionResult ToCreatedHttpResponse<T>(this Result<T> result)
+        {
+            if (result.IsSuccess)
+            {
+                return new ObjectResult(result.Value)
+                {
+                    StatusCode = StatusCodes.Status201Created
+                };
+            }
 
-			return new BadRequestObjectResult(new ProblemDetails
-			{
-				Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-				Title = "Unexpected Error",
-				Detail = result.Errors.FirstOrDefault()?.Message ?? string.Empty
-			});
-		}
+            return HandleError(result);
+        }
 
-		private static ObjectResult HandleValidationError<T>(Result<T> result)
-		{
-			var details = new ValidationProblemDetails(new Dictionary<string, string[]> {
-			{ "ValidationError" , result.Errors.Select(c => c.Message).ToArray()}
-		})
-			{
-				Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-				Title = "Validation Error"
-			};
+        private static ObjectResult HandleError<T>(Result<T> result)
+        {
+            var firstError = result.Errors.FirstOrDefault();
 
-			return new BadRequestObjectResult(details);
-		}
+            if (firstError is ValidationError)
+            {
+                return HandleValidationError(result);
+            }
+            else if (firstError is NotFoundError)
+            {
+                return HandleNotFoundError(result);
+            }
 
-		private static ObjectResult HandleNotFoundError<T>(Result<T> result)
-		{
-			var details = new ProblemDetails()
-			{
-				Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-				Title = "The specified resource was not found.",
-				Detail = result.Errors.FirstOrDefault()?.Message ?? string.Empty
-			};
+            return new BadRequestObjectResult(new ProblemDetails
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Unexpected Error",
+                Detail = result.Errors.FirstOrDefault()?.Message ?? string.Empty
+            });
+        }
 
-			return new NotFoundObjectResult(details);
-		}
-	}
+        private static ObjectResult HandleValidationError<T>(Result<T> result)
+        {
+            var details = new ValidationProblemDetails(new Dictionary<string, string[]>
+            { { "ValidationError", result.Errors.Select(c => c.Message).ToArray() } })
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                Title = "Validation Error"
+            };
+
+            return new BadRequestObjectResult(details);
+        }
+
+        private static ObjectResult HandleNotFoundError<T>(Result<T> result)
+        {
+            var details = new ProblemDetails()
+            {
+                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
+                Title = "The specified resource was not found.",
+                Detail = result.Errors.FirstOrDefault()?.Message ?? string.Empty
+            };
+
+            return new NotFoundObjectResult(details);
+        }
+    }
 }

@@ -8,7 +8,7 @@ namespace Catalog.IntegrationTests.Repositories
     {
         public ProductRepositoryIntegrationTests()
         {
-            CleanDatabase();
+            this.CleanDatabase();
         }
 
         [Fact]
@@ -32,11 +32,11 @@ namespace Catalog.IntegrationTests.Repositories
             };
 
             // Act
-            await CatalogContext.Products.AddAsync(product);
-            await CatalogContext.SaveChangesAsync();
+            await this.CatalogContext.Products.AddAsync(product);
+            await this.CatalogContext.SaveChangesAsync();
 
             // Assert
-            var insertedProduct = await CatalogContext.Products.FindAsync(product.Id);
+            var insertedProduct = await this.CatalogContext.Products.FindAsync(product.Id);
             insertedProduct.Should().NotBeNull();
             insertedProduct!.Name.Should().Be("Test Product");
         }
@@ -60,11 +60,11 @@ namespace Catalog.IntegrationTests.Repositories
                     Name = "Test Category"
                 }
             };
-            await CatalogContext.Products.AddAsync(product);
-            await CatalogContext.SaveChangesAsync();
+            await this.CatalogContext.Products.AddAsync(product);
+            await this.CatalogContext.SaveChangesAsync();
 
             // Act
-            var retrievedProduct = await CatalogContext.Products.FindAsync(product.Id);
+            var retrievedProduct = await this.CatalogContext.Products.FindAsync(product.Id);
 
             // Assert
             retrievedProduct.Should().NotBeNull();
@@ -90,15 +90,15 @@ namespace Catalog.IntegrationTests.Repositories
                     Name = "Test Category"
                 }
             };
-            await CatalogContext.Products.AddAsync(product);
-            await CatalogContext.SaveChangesAsync();
+            await this.CatalogContext.Products.AddAsync(product);
+            await this.CatalogContext.SaveChangesAsync();
 
             // Act
-            CatalogContext.Products.Remove(product);
-            await CatalogContext.SaveChangesAsync();
+            this.CatalogContext.Products.Remove(product);
+            await this.CatalogContext.SaveChangesAsync();
 
             // Assert
-            var deletedProduct = await CatalogContext.Products.FindAsync(product.Id);
+            var deletedProduct = await this.CatalogContext.Products.FindAsync(product.Id);
             deletedProduct.Should().BeNull();
         }
     }

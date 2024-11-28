@@ -2,19 +2,19 @@
 
 namespace Catalog.Application.Features.Products.CreateProduct
 {
-	public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
-	{
-		public CreateProductCommandValidator()
-		{
-			RuleFor(p => p.Name)
-				.NotEmpty();
+    public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+    {
+        public CreateProductCommandValidator()
+        {
+            this.RuleFor(p => p.Name)
+                .NotEmpty();
 
-			RuleFor(p => p.CategoryId)
-				.NotNull();
+            this.RuleFor(p => p.CategoryId)
+                .NotNull();
 
-			RuleFor(p => p.Price)
-				.NotNull()
-				.GreaterThanOrEqualTo(0);
-		}
-	}
+            this.RuleFor(p => p.Price)
+                .NotNull()
+                .GreaterThanOrEqualTo(0);
+        }
+    }
 }
