@@ -3,9 +3,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <SonarQubeExclude>false</SonarQubeExclude>
-    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
-	<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
-	<RunAnalyzersDuringLiveAnalysis>false</RunAnalyzersDuringLiveAnalysis>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+	<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
   
    <ItemGroup>
