@@ -4,40 +4,42 @@ using MongoDB.Driver;
 
 namespace Cart.IntegrationTests.Base
 {
-	public class CartIntegrationTestBase : IDisposable
-	{
-		protected readonly ICartContext CartContext;
-		private readonly MongoDbRunner _mongoRunner;
-		private bool _disposed = false;
+    public class CartIntegrationTestBase : IDisposable
+    {
+        protected readonly ICartContext CartContext;
+        private readonly MongoDbRunner mongoRunner;
+        private bool disposed = false;
 
-		public CartIntegrationTestBase()
-		{
-			_mongoRunner = MongoDbRunner.Start();
+        public CartIntegrationTestBase()
+        {
+            this.mongoRunner = MongoDbRunner.Start();
 
-			var mongoClient = new MongoClient(_mongoRunner.ConnectionString);
-			var mongoDatabaseName = "TestDatabase";
-			var cartCollectionName = "Carts";
+            var mongoClient = new MongoClient(this.mongoRunner.ConnectionString);
+            var mongoDatabaseName = "TestDatabase";
+            var cartCollectionName = "Carts";
 
-			CartContext = new CartContext(mongoClient, mongoDatabaseName, cartCollectionName);
-		}
+            this.CartContext = new CartContext(mongoClient, mongoDatabaseName, cartCollectionName);
+        }
 
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (_disposed)
-				return;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed)
+            {
+                return;
+            }
 
-			if (disposing)
-			{
-				_mongoRunner?.Dispose();
-			}
+            if (disposing)
+            {
+                this.mongoRunner?.Dispose();
+            }
 
-			_disposed = true;
-		}
-	}
+            this.disposed = true;
+        }
+    }
 }

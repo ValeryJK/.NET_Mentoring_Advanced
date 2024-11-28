@@ -8,60 +8,66 @@ using MediatR;
 
 namespace Catalog.Application.Features.Products.UpdateProduct
 {
-	public class UpdateProductCommand : IRequest<Result<UpdateProductCommandResponse>>
-	{
-		public int Id { get; set; }
-		public string Name { get; set; } = default!;
-		public string? Description { get; set; }
-		public string? Image { get; set; }
-		public decimal Price { get; set; }
-		public int Amount { get; set; }
-		public int CategoryId { get; set; }
-	}
+    public class UpdateProductCommand : IRequest<Result<UpdateProductCommandResponse>>
+    {
+        public int Id { get; set; }
 
-	public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<UpdateProductCommandResponse>>
-	{
-		private readonly IProductRepository _productRepository;
-		private readonly ICategoryRepository _categoryRepository;
-		private readonly IPublishEndpoint _publishEndpoint;
+        public string Name { get; set; } = default!;
 
-		public UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IPublishEndpoint publishEndpoint)
-		{
-			_productRepository = productRepository;
-			_categoryRepository = categoryRepository;
-			_publishEndpoint = publishEndpoint;
-		}
+        public string? Description { get; set; }
 
-		public async Task<Result<UpdateProductCommandResponse>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
-		{
-			var product = await _productRepository.GetByIdAsync(request.Id);
-			if (product is null)
-			{
-				return Result.Fail(new NotFoundError($"Product with id {request.Id} cannot be found"));
-			}
+        public string? Image { get; set; }
 
-			var category = await _categoryRepository.GetByIdAsync(request.CategoryId);
-			if (category is null)
-			{
-				return Result.Fail(new NotFoundError($"Category with id {request.CategoryId} cannot be found"));
-			}
+        public decimal Price { get; set; }
 
-			request.Adapt(product);
-			product.Category = category;
+        public int Amount { get; set; }
 
-			await _productRepository.UpdateAsync(product);
-			var response = product.Adapt<UpdateProductCommandResponse>();
+        public int CategoryId { get; set; }
+    }
 
-			var updateEvent = new UpdateCartItemEvent
-			{
-				Id = request.Id,
-				Price = request.Price,
-				Name = request.Name
-			};
+    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<UpdateProductCommandResponse>>
+    {
+        private readonly IProductRepository productRepository;
+        private readonly ICategoryRepository categoryRepository;
+        private readonly IPublishEndpoint publishEndpoint;
 
-			await _publishEndpoint.Publish(updateEvent);
+        public UpdateProductCommandHandler(IProductRepository productRepository, ICategoryRepository categoryRepository, IPublishEndpoint publishEndpoint)
+        {
+            this.productRepository = productRepository;
+            this.categoryRepository = categoryRepository;
+            this.publishEndpoint = publishEndpoint;
+        }
 
-			return Result.Ok(response);
-		}
-	}
+        public async Task<Result<UpdateProductCommandResponse>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+        {
+            var product = await this.productRepository.GetByIdAsync(request.Id);
+            if (product is null)
+            {
+                return Result.Fail(new NotFoundError($"Product with id {request.Id} cannot be found"));
+            }
+
+            var category = await this.categoryRepository.GetByIdAsync(request.CategoryId);
+            if (category is null)
+            {
+                return Result.Fail(new NotFoundError($"Category with id {request.CategoryId} cannot be found"));
+            }
+
+            request.Adapt(product);
+            product.Category = category;
+
+            await this.productRepository.UpdateAsync(product);
+            var response = product.Adapt<UpdateProductCommandResponse>();
+
+            var updateEvent = new UpdateCartItemEvent
+            {
+                Id = request.Id,
+                Price = request.Price,
+                Name = request.Name
+            };
+
+            await this.publishEndpoint.Publish(updateEvent, cancellationToken);
+
+            return Result.Ok(response);
+        }
+    }
 }

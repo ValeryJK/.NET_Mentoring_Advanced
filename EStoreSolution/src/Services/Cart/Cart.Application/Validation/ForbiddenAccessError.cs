@@ -2,10 +2,11 @@
 
 namespace Cart.Application.Validation
 {
-	public class ForbiddenAccessError : Error
-	{
-		public ForbiddenAccessError(string message) : base(message)
-		{
-		}
-	}
+    public class ForbiddenAccessError : Error
+    {
+        public ForbiddenAccessError(string message)
+            : base(message)
+        {
+        }
+    }
 }

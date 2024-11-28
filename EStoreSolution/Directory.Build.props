@@ -1,13 +1,24 @@
 <Project>
   <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <SonarQubeExclude>false</SonarQubeExclude>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	<RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+	<RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
   </PropertyGroup>
   
    <ItemGroup>
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="9.25.0.90414">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+	   <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0">
+		   <PrivateAssets>all</PrivateAssets>
+	   </PackageReference>
+
+	   <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+		   <PrivateAssets>all</PrivateAssets>
+	   </PackageReference>
+
+	   <PackageReference Include="SonarAnalyzer.CSharp" Version="9.25.0.90414">
+		   <PrivateAssets>all</PrivateAssets>
+	   </PackageReference>
   </ItemGroup>
 </Project>

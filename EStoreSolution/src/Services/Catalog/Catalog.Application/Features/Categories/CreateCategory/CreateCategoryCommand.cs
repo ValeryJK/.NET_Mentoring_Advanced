@@ -6,33 +6,34 @@ using MediatR;
 
 namespace Catalog.Application.Features.Categories.CreateCategory
 {
-	public class CreateCategoryCommand : IRequest<Result<CreateCategoryCommandResponse>>
-	{
-		public string Name { get; set; } = default!;
-		public string? Image { get; set; }
-	}
+    public class CreateCategoryCommand : IRequest<Result<CreateCategoryCommandResponse>>
+    {
+        public string Name { get; set; } = default!;
 
-	public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Result<CreateCategoryCommandResponse>>
-	{
-		private readonly ICategoryRepository _categoryRepository;
+        public string? Image { get; set; }
+    }
 
-		public CreateCategoryCommandHandler(ICategoryRepository categoryRepository)
-		{
-			_categoryRepository = categoryRepository;
-		}
+    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Result<CreateCategoryCommandResponse>>
+    {
+        private readonly ICategoryRepository categoryRepository;
 
-		public async Task<Result<CreateCategoryCommandResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
-		{
-			var category = new Category
-			{
-				Name = request.Name,
-				Image = request.Image
-			};
+        public CreateCategoryCommandHandler(ICategoryRepository categoryRepository)
+        {
+            this.categoryRepository = categoryRepository;
+        }
 
-			category = await _categoryRepository.AddAsync(category);
-			var response = category.Adapt<CreateCategoryCommandResponse>();
+        public async Task<Result<CreateCategoryCommandResponse>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        {
+            var category = new Category
+            {
+                Name = request.Name,
+                Image = request.Image
+            };
 
-			return Result.Ok(response);
-		}
-	}
+            category = await this.categoryRepository.AddAsync(category);
+            var response = category.Adapt<CreateCategoryCommandResponse>();
+
+            return Result.Ok(response);
+        }
+    }
 }

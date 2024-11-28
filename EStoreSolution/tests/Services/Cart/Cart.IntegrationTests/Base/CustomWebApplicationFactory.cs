@@ -1,4 +1,5 @@
-﻿using Cart.Domain.Interfaces;
+﻿using System.Net.Http.Headers;
+using Cart.Domain.Interfaces;
 using Cart.Persistence.Context;
 using Cart.Persistence.Repositories;
 using Microsoft.AspNetCore.Hosting;
@@ -9,80 +10,84 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Mongo2Go;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using System.Net.Http.Headers;
 
 namespace Cart.IntegrationTests.Base
 {
-	public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
-	{
-		private readonly MongoDbRunner _mongoRunner;
-		public IMongoDatabase Database { get; private set; }
-		private readonly IConfiguration _configuration;
-		private string? _accessToken;
+    public class CustomWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
+        where TStartup : class
+    {
+        private readonly MongoDbRunner mongoRunner;
 
-		public CustomWebApplicationFactory()
-		{
-			_mongoRunner = MongoDbRunner.Start();
-			Database = new MongoClient(_mongoRunner.ConnectionString).GetDatabase("TestDatabase");
+        public IMongoDatabase Database { get; private set; }
 
-			_configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
-		}
+        private readonly IConfiguration configuration;
+        private string? accessToken;
 
-		protected override void ConfigureWebHost(IWebHostBuilder builder)
-		{
-			builder.UseEnvironment("Test");
+        public CustomWebApplicationFactory()
+        {
+            this.mongoRunner = MongoDbRunner.Start();
+            this.Database = new MongoClient(this.mongoRunner.ConnectionString).GetDatabase("TestDatabase");
 
-			builder.ConfigureServices(services =>
-			{
-				services.RemoveAll<ICartContext>();
-				services.RemoveAll<ICartRepository>();
-				services.AddSingleton<IMongoDatabase>(_ => Database);
-				services.AddSingleton<ICartContext>(_ => new CartContext(new MongoClient(_mongoRunner.ConnectionString), "TestDatabase", "Carts"));
-				services.AddScoped<ICartRepository, CartRepository>();
-			});
-		}
+            this.configuration = new ConfigurationBuilder().AddJsonFile("appsettings.Test.json").Build();
+        }
 
-		public async Task<HttpClient> CreateAuthenticatedClientAsync()
-		{
-			if (_accessToken == null)
-				_accessToken = await GetAccessTokenAsync();
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment("Test");
 
-			var client = CreateClient();
-			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-			return client;
-		}
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<ICartContext>();
+                services.RemoveAll<ICartRepository>();
+                services.AddSingleton<IMongoDatabase>(_ => this.Database);
+                services.AddSingleton<ICartContext>(_ => new CartContext(new MongoClient(this.mongoRunner.ConnectionString), "TestDatabase", "Carts"));
+                services.AddScoped<ICartRepository, CartRepository>();
+            });
+        }
 
-		private async Task<string> GetAccessTokenAsync()
-		{
-			using var client = new HttpClient();
-			var tokenRequest = new Dictionary<string, string>
-			{
-				{ "client_id", _configuration["Authentication:ClientId"] ?? throw new InvalidOperationException("Authentication ClientId is missing or incomplete.") },
-				{ "client_secret", "tK5iT9My7gt0n7PYMPJbznaSqmAFhbLI" },
-				{ "grant_type", _configuration["Authentication:GrantType"] ?? throw new InvalidOperationException("Authentication GrantType is missing or incomplete.") },
-				{ "username", "test_user" },
-				{ "password", "11111" }
-			};
+        public async Task<HttpClient> CreateAuthenticatedClientAsync()
+        {
+            if (this.accessToken == null)
+            {
+                this.accessToken = await this.GetAccessTokenAsync();
+            }
 
-			var response = await client.PostAsync($"{_configuration["Authentication:Authority"]}/protocol/openid-connect/token", new FormUrlEncodedContent(tokenRequest));
+            var client = this.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", this.accessToken);
+            return client;
+        }
 
-			response.EnsureSuccessStatusCode();
+        private async Task<string> GetAccessTokenAsync()
+        {
+            using var client = new HttpClient();
+            var tokenRequest = new Dictionary<string, string>
+            {
+                { "client_id", this.configuration["Authentication:ClientId"] ?? throw new InvalidOperationException("Authentication ClientId is missing or incomplete.") },
+                { "client_secret", "tK5iT9My7gt0n7PYMPJbznaSqmAFhbLI" },
+                { "grant_type", this.configuration["Authentication:GrantType"] ?? throw new InvalidOperationException("Authentication GrantType is missing or incomplete.") },
+                { "username", "test_user" },
+                { "password", "11111" }
+            };
 
-			var responseBody = await response.Content.ReadAsStringAsync();
-			var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseBody);
+            var response = await client.PostAsync($"{this.configuration["Authentication:Authority"]}/protocol/openid-connect/token", new FormUrlEncodedContent(tokenRequest));
 
-			return tokenResponse?.AccessToken ?? throw new InvalidOperationException("Failed to retrieve access token.");
-		}
+            response.EnsureSuccessStatusCode();
 
-		public new void Dispose()
-		{
-			_mongoRunner.Dispose();
-		}
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(responseBody);
 
-		private class TokenResponse
-		{
-			[JsonProperty("access_token")]
-			public string? AccessToken { get; set; }
-		}
-	}
+            return tokenResponse?.AccessToken ?? throw new InvalidOperationException("Failed to retrieve access token.");
+        }
+
+        public new void Dispose()
+        {
+            this.mongoRunner.Dispose();
+        }
+
+        private class TokenResponse
+        {
+            [JsonProperty("access_token")]
+            public string? AccessToken { get; set; }
+        }
+    }
 }

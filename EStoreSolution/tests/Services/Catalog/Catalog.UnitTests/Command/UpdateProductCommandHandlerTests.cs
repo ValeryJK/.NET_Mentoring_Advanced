@@ -6,57 +6,57 @@ using Moq;
 
 namespace Catalog.UnitTests.Command
 {
-	public class UpdateProductCommandHandlerTests
-	{
-		private readonly Mock<IProductRepository> _productRepositoryMock;
-		private readonly Mock<ICategoryRepository> _categoryRepositoryMock;
+    public class UpdateProductCommandHandlerTests
+    {
+        private readonly Mock<IProductRepository> productRepositoryMock;
+        private readonly Mock<ICategoryRepository> categoryRepositoryMock;
 
-		private readonly Mock<IPublishEndpoint> _publishEndpoint;
-		private readonly UpdateProductCommandHandler _handler;
+        private readonly Mock<IPublishEndpoint> publishEndpoint;
+        private readonly UpdateProductCommandHandler handler;
 
-		public UpdateProductCommandHandlerTests()
-		{
-			_productRepositoryMock = new Mock<IProductRepository>();
-			_categoryRepositoryMock = new Mock<ICategoryRepository>();
-			_publishEndpoint = new Mock<IPublishEndpoint>();
-			_handler = new UpdateProductCommandHandler(_productRepositoryMock.Object, _categoryRepositoryMock.Object, _publishEndpoint.Object);
-		}
+        public UpdateProductCommandHandlerTests()
+        {
+            this.productRepositoryMock = new Mock<IProductRepository>();
+            this.categoryRepositoryMock = new Mock<ICategoryRepository>();
+            this.publishEndpoint = new Mock<IPublishEndpoint>();
+            this.handler = new UpdateProductCommandHandler(this.productRepositoryMock.Object, this.categoryRepositoryMock.Object, this.publishEndpoint.Object);
+        }
 
-		[Fact]
-		public async Task Handle_ProductExists_UpdatesProductAndReturnsResponse()
-		{
-			// Arrange
-			var command = new UpdateProductCommand
-			{
-				Id = 1,
-				Name = "Updated Product",
-				Description = "Updated Description",
-				Image = "updated-image.png",
-				Price = 99.99m,
-				Amount = 10,
-				CategoryId = 2
-			};
+        [Fact]
+        public async Task Handle_ProductExists_UpdatesProductAndReturnsResponse()
+        {
+            // Arrange
+            var command = new UpdateProductCommand
+            {
+                Id = 1,
+                Name = "Updated Product",
+                Description = "Updated Description",
+                Image = "updated-image.png",
+                Price = 99.99m,
+                Amount = 10,
+                CategoryId = 2
+            };
 
-			var existingProduct = new Product
-			{
-				Id = 1,
-				Name = "Old Product",
-				CategoryId = 1
-			};
+            var existingProduct = new Product
+            {
+                Id = 1,
+                Name = "Old Product",
+                CategoryId = 1
+            };
 
-			var existingCategory = new Category { Id = 2, Name = "Category 2" };
+            var existingCategory = new Category { Id = 2, Name = "Category 2" };
 
-			_productRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id)).ReturnsAsync(existingProduct);
-			_categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(command.CategoryId)).ReturnsAsync(existingCategory);
+            this.productRepositoryMock.Setup(repo => repo.GetByIdAsync(command.Id)).ReturnsAsync(existingProduct);
+            this.categoryRepositoryMock.Setup(repo => repo.GetByIdAsync(command.CategoryId)).ReturnsAsync(existingCategory);
 
-			// Act
-			var result = await _handler.Handle(command, CancellationToken.None);
+            // Act
+            var result = await this.handler.Handle(command, CancellationToken.None);
 
-			// Assert
-			Assert.True(result.IsSuccess);
-			Assert.Equal(command.Name, result.Value.Name);
-			Assert.Equal(command.Description, result.Value.Description);
-			_productRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Product>()), Times.Once);
-		}
-	}
+            // Assert
+            Assert.True(result.IsSuccess);
+            Assert.Equal(command.Name, result.Value.Name);
+            Assert.Equal(command.Description, result.Value.Description);
+            this.productRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Product>()), Times.Once);
+        }
+    }
 }

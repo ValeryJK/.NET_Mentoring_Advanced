@@ -1,0 +1,10 @@
+﻿{
+  "settings": {
+    "documentationRules": {
+      "companyName": "MyCompany",
+      "copyrightText": "© MyCompany",
+      "documentInternalElements": false,
+      "documentPrivateElements": false
+    }
+  }
+}

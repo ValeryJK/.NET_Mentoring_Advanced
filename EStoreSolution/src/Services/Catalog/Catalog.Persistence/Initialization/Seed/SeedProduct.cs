@@ -2,44 +2,45 @@
 
 namespace Catalog.Persistence.Initialization.Seed
 {
-	public class SeedProduct : ICustomSeeder
-	{
-		private readonly ApplicationDbContext _context;
-		private readonly object _locker = new object();
+    public class SeedProduct : ICustomSeeder
+    {
+        private readonly ApplicationDbContext context;
+        private readonly object locker = new object();
 
-		public bool IsDevelopmentData => true;
-		public int Order => 2;
+        public bool IsDevelopmentData => true;
 
-		public SeedProduct(ApplicationDbContext context)
-		{
-			_context = context;
-		}
+        public int Order => 2;
 
-		public Task Initialize()
-		{
-			lock (_locker)
-			{
-				using (var transaction = _context.Database.BeginTransaction())
-				{
-					_context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Products ON");
+        public SeedProduct(ApplicationDbContext context)
+        {
+            this.context = context;
+        }
 
-					foreach (var product in SeedData.Products)
-					{
-						if (_context.Products.Any(p => p.Id == product.Id))
-						{
-							continue;
-						}
+        public Task Initialize()
+        {
+            lock (this.locker)
+            {
+                using (var transaction = this.context.Database.BeginTransaction())
+                {
+                    this.context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Products ON");
 
-						_context.Products.Add(product);
-					}
+                    foreach (var product in SeedData.Products)
+                    {
+                        if (this.context.Products.Any(p => p.Id == product.Id))
+                        {
+                            continue;
+                        }
 
-					_context.SaveChanges();
-					_context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Products OFF");
-					transaction.Commit();
-				}
-			}
+                        this.context.Products.Add(product);
+                    }
 
-			return Task.CompletedTask;
-		}
-	}
+                    this.context.SaveChanges();
+                    this.context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT Products OFF");
+                    transaction.Commit();
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+    }
 }

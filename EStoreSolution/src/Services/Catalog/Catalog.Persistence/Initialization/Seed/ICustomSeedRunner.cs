@@ -1,7 +1,7 @@
 ﻿namespace Catalog.Persistence.Initialization.Seed
 {
-	public interface ICustomSeedRunner
-	{
-		Task RunSeeders(bool isDevelopment);
-	}
+    public interface ICustomSeedRunner
+    {
+        Task RunSeeders(bool isDevelopment);
+    }
 }
