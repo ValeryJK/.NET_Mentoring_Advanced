@@ -1,43 +1,216 @@
 services:
+  mssqldb:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql-db
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Admin!1234"
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_mssql_data:/var/opt/mssql
+    networks:
+      - my_network
+
   cartdb:
     image: mongo:latest
+    container_name: cart-db    
+    restart: always
+    ports:
+      - "27018:27017"   
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - my_network
 
   keycloakdb:
     image: postgres:latest
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_db_user
+      POSTGRES_PASSWORD: Admin!1234
+    ports:
+      - "5442:5432"   
+    volumes:
+      - db_keycloak_data:/var/lib/postgresql/data
+    networks:
+      - my_network
 
-  mssqldb:
-    image: mcr.microsoft.com/mssql/server:2019-latest    
-
-  cart.api:
-    image: ${DOCKER_REGISTRY-}cartapi
+  cart.api:   
+    container_name: cart.api
+    restart: always
     build:
       context: .
-      dockerfile: src/Services/Cart/Cart.API/Dockerfile
+      dockerfile: src/Services/Cart/Cart.API/Dockerfile    
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development      
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - DatabaseSettings__ConnectionString=mongodb://cartdb:27017
+      - RabbitMqSettings__Host=amqp://guest:guest@rabbitmq:5672
+      - Authentication__Authority=http://keycloak-app:8080/auth/realms/estore-realm
+      - Authorization__AuthorizationUrl=http://keycloak-app:8080/auth/realms/estore-realm/protocol/openid-connect/auth
+    ports:
+      - "8000:8080"
+      - "8001:8081"
+    depends_on:
+      cartdb:
+        condition: service_started      
+    networks:
+      - my_network
 
   catalog.api:
-    image: ${DOCKER_REGISTRY-}catalogapi
+    container_name: catalog.api
+    restart: always
     build:
       context: .
-      dockerfile: src/Services/Catalog/Catalog.API/Dockerfile  
+      dockerfile: src/Services/Catalog/Catalog.API/Dockerfile    
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OpenTelemetry__OtlpEndpoint=http://jaeger:4317
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+      - DatabaseSettings__ConnectionString=Server=mssql-db;Database=CatalogDb;User Id=sa;Password=Admin!1234;TrustServerCertificate=True
+      - RabbitMqSettings__Host=amqp://guest:guest@rabbitmq:5672
+      - Authentication__Authority=http://keycloak-app:8080/auth/realms/estore-realm
+      - Authorization__AuthorizationUrl=http://keycloak-app:8080/auth/realms/estore-realm/protocol/openid-connect/auth
+    ports:
+      - "8002:8080"
+      - "8003:8081"
+    depends_on:
+      mssqldb:
+        condition: service_started
+    networks:
+      - my_network
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:latest
-
+  healthchecks-web:
+    container_name: healthchecks-web
+    restart: always
+    build:
+      context: .
+      dockerfile: src/WebStatus/HealthCheck.Web/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8005:8080"
+    volumes:
+      - healthchecks-web-data:/storage 
+    networks:
+      - my_network
+    
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest 
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - my_network 
 
   portainer:
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce
+    container_name: portainer
+    restart: always
+    ports:
+      - "8004:8000"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - my_network
 
   prometheus:
     image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - my_network
 
   grafana:
     image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - my_network
+  
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest    
+    restart: always
+    container_name: keycloak-app
+    command: start-dev
+    environment:     
+      KC_HEALTH_ENABLED: true
+      KC_HTTP_RELATIVE_PATH: /auth
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: Admin!1234
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db/keycloak_db
+      KC_DB_USERNAME: keycloak_db_user
+      KC_DB_PASSWORD: Admin!1234
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+    depends_on:
+      - keycloakdb
+    networks:
+      - my_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "4317:4317"
+      - "14250:14250"
+    networks:
+      - my_network
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube-app
+    ports:
+      - "9100:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions  
+    networks:
+      - my_network
 
 volumes:
   mongo_data:
   grafana_data:
   healthchecks-web-data:
-  portainer_data:
+  db_mssql_data:
+  keycloak_data:
+  db_keycloak_data:
   rabbitmq_data:
+  portainer_data:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+
+networks:
+  my_network:
+    driver: bridge
