@@ -6,7 +6,7 @@
 
         public HateoasLinks()
         {
-            this.links = new Dictionary<string, (string ActionName, string Method)>();
+            this.links = new();
         }
 
         public HateoasLinks AddLink(string rel, string actionName, string method)

@@ -65,7 +65,7 @@ namespace Catalog.Application.Features.Products.UpdateProduct
                 Name = request.Name
             };
 
-            await this.publishEndpoint.Publish(updateEvent);
+            await this.publishEndpoint.Publish(updateEvent, cancellationToken);
 
             return Result.Ok(response);
         }
